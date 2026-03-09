@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Zen+Kaku+Gothic+New:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
+    /* Wabi Sabi Theme (Default) */
     :root {
       --bg: #f5f1eb;
       --bg-deep: #e8e2d9;
@@ -19,6 +20,23 @@
       --card: rgba(255, 252, 247, 0.7);
       --border: rgba(92, 74, 66, 0.15);
       --ink: #3d3632;
+      --noise-opacity: 0.4;
+      --noise-blend: multiply;
+    }
+
+    /* Midnight Violet Theme */
+    [data-theme="purple"] {
+      --bg: #0f0e14;
+      --bg-deep: #1a1823;
+      --fg: #e4e2eb;
+      --fg-muted: #9a95b0;
+      --accent: #a78bfa;
+      --accent-deep: #6d28d9;
+      --card: rgba(30, 28, 40, 0.75);
+      --border: rgba(167, 139, 250, 0.15);
+      --ink: #000000;
+      --noise-opacity: 0.15;
+      --noise-blend: overlay;
     }
 
     * {
@@ -31,6 +49,7 @@
       color: var(--fg);
       margin: 0;
       min-height: 100vh;
+      transition: background-color 0.5s ease, color 0.5s ease;
     }
 
     .font-display {
@@ -42,10 +61,11 @@
       position: fixed;
       inset: 0;
       pointer-events: none;
-      opacity: 0.4;
+      opacity: var(--noise-opacity);
       background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-      mix-blend-mode: multiply;
+      mix-blend-mode: var(--noise-blend);
       z-index: 9999;
+      transition: opacity 0.5s ease;
     }
 
     /* Ink wash blob */
@@ -58,6 +78,7 @@
       opacity: 0.08;
       pointer-events: none;
       z-index: 0;
+      transition: all 0.5s ease;
     }
 
     .ink-wash-1 {
@@ -72,6 +93,15 @@
       left: -200px;
     }
 
+    [data-theme="purple"] .ink-wash-1 {
+      opacity: 0.15;
+    }
+    
+    [data-theme="purple"] .ink-wash-2 {
+      background: radial-gradient(ellipse at center, #4c1d95 0%, transparent 70%);
+      opacity: 0.2;
+    }
+
     /* Sidebar styles */
     .sidebar {
       position: fixed;
@@ -79,18 +109,19 @@
       top: 0;
       height: 100vh;
       width: 280px;
-      background: linear-gradient(135deg, var(--card) 0%, rgba(245, 241, 235, 0.95) 100%);
+      background: linear-gradient(135deg, var(--card) 0%, var(--bg) 100%);
       backdrop-filter: blur(20px);
       border-right: 1px solid var(--border);
       z-index: 100;
       display: flex;
       flex-direction: column;
-      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), background 0.5s ease;
     }
 
     .sidebar-header {
       padding: 2rem 1.5rem;
       border-bottom: 1px solid var(--border);
+      transition: border-color 0.3s ease;
     }
 
     .sidebar-nav {
@@ -156,9 +187,17 @@
       color: var(--fg);
     }
 
+    [data-theme="purple"] .nav-item:hover {
+      background: rgba(167, 139, 250, 0.08);
+    }
+
     .nav-item.active {
       color: var(--fg);
       background: rgba(139, 107, 92, 0.08);
+    }
+
+    [data-theme="purple"] .nav-item.active {
+      background: rgba(167, 139, 250, 0.12);
     }
 
     .nav-item.active::before {
@@ -174,6 +213,55 @@
 
     .nav-item.active .nav-item-icon {
       opacity: 1;
+    }
+
+    /* Theme Toggle Button */
+    .theme-toggle-container {
+      padding: 1rem 1.5rem;
+      border-top: 1px solid var(--border);
+      margin-top: auto;
+    }
+
+    .theme-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 0.75rem 1rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      color: var(--fg);
+      font-size: 0.85rem;
+      transition: all 0.2s ease;
+    }
+
+    .theme-toggle:hover {
+      border-color: var(--accent);
+      background: rgba(255, 255, 255, 0.02);
+    }
+    
+    [data-theme="purple"] .theme-toggle {
+        background: rgba(0, 0, 0, 0.2);
+    }
+
+    .theme-toggle-icons {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .theme-icon {
+      width: 18px;
+      height: 18px;
+      opacity: 0.4;
+      transition: opacity 0.3s ease, color 0.3s ease;
+    }
+
+    .theme-icon.active {
+      opacity: 1;
+      color: var(--accent);
     }
 
     /* Main content */
@@ -195,6 +283,7 @@
       position: sticky;
       top: 0;
       z-index: 50;
+      transition: background 0.5s ease, border-color 0.5s ease;
     }
 
     .current-game-title {
@@ -229,6 +318,11 @@
       height: calc(100vh - 70px);
       position: relative;
       background: white;
+      transition: background 0.5s ease;
+    }
+    
+    [data-theme="purple"] .iframe-container {
+        background: #1a1823;
     }
 
     .iframe-container iframe {
@@ -246,6 +340,7 @@
       justify-content: center;
       background: var(--bg);
       gap: 1.5rem;
+      transition: background 0.5s ease;
     }
 
     .loading-spinner {
@@ -259,12 +354,6 @@
 
     @keyframes spin {
       to { transform: rotate(360deg); }
-    }
-
-    .iframe-container iframe.loaded + .iframe-loading {
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.3s ease;
     }
 
     /* Mobile menu toggle */
@@ -283,12 +372,12 @@
       cursor: pointer;
       align-items: center;
       justify-content: center;
+      color: var(--fg);
     }
 
     .menu-toggle svg {
       width: 20px;
       height: 20px;
-      color: var(--fg);
     }
 
     .sidebar-overlay {
@@ -299,6 +388,10 @@
       z-index: 90;
       opacity: 0;
       transition: opacity 0.3s ease;
+    }
+
+    [data-theme="purple"] .sidebar-overlay {
+      background: rgba(0, 0, 0, 0.5);
     }
 
     /* Empty state */
@@ -377,7 +470,9 @@
 
       .sidebar,
       .nav-item,
-      .nav-item::before {
+      .nav-item::before,
+      body,
+      .ink-wash {
         transition: none;
       }
     }
@@ -504,13 +599,31 @@
       </button>
 
       <div class="nav-category">Puzzle</div>
-      <button class="nav-item" data-url="https://www.theatlantic.com/games/bracket-city/" data-title="Bracket City">
+      <button class="nav-item" data-url="https://www.theatlantic.com/games/bracket city/" data-title="Bracket City">
         <svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
           <path d="M8 3H5a2 2 0 00-2 2v3M8 21H5a2 2 0 01-2-2v-3M16 3h3a2 2 0 012 2v3M16 21h3a2 2 0 002-2v-3"/>
         </svg>
         <span>Bracket City</span>
       </button>
     </nav>
+
+    <!-- Theme Toggle -->
+    <div class="theme-toggle-container">
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+        <span>Theme</span>
+        <div class="theme-toggle-icons">
+          <!-- Sun Icon (Light/Wabi Sabi) -->
+          <svg class="theme-icon active" id="sunIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="4"/>
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+          </svg>
+          <!-- Moon Icon (Dark/Purple) -->
+          <svg class="theme-icon" id="moonIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+          </svg>
+        </div>
+      </button>
+    </div>
   </aside>
 
   <!-- Main content -->
@@ -543,7 +656,7 @@
       { id: 'alldle', title: 'Alldle Hub', url: 'https://www.alldle.net/' },
       { id: 'loldle', title: 'Loldle', url: 'https://loldle.net/' },
       { id: 'narutodle', title: 'Narutodle', url: 'https://narutodle.net/' },
-      { id: 'bracket', title: 'Bracket City', url: 'https://www.theatlantic.com/games/bracket-city/' },
+      { id: 'bracket', title: 'Bracket City', url: 'https://www.theatlantic.com/games/bracket city/' },
       { id: 'redactle', title: 'Redactle', url: 'https://redactle.net/' },
       { id: 'contexto', title: 'Contexto', url: 'https://contexto.me/en/' },
       { id: 'clueless', title: 'Clueless', url: 'https://lessgames.com/clueless' },
@@ -555,6 +668,7 @@
     ];
 
     // DOM elements
+    const body = document.body;
     const sidebar = document.getElementById('sidebar');
     const sidebarOverlay = document.getElementById('sidebarOverlay');
     const menuToggle = document.getElementById('menuToggle');
@@ -563,8 +677,34 @@
     const externalLink = document.getElementById('externalLink');
     const iframeContainer = document.getElementById('iframeContainer');
     const emptyState = document.getElementById('emptyState');
+    const themeToggle = document.getElementById('themeToggle');
+    const sunIcon = document.getElementById('sunIcon');
+    const moonIcon = document.getElementById('moonIcon');
 
     let currentIframe = null;
+
+    // Theme Handling
+    function setTheme(theme) {
+      if (theme === 'purple') {
+        body.setAttribute('data-theme', 'purple');
+        sunIcon.classList.remove('active');
+        moonIcon.classList.add('active');
+      } else {
+        body.removeAttribute('data-theme');
+        sunIcon.classList.add('active');
+        moonIcon.classList.remove('active');
+      }
+      localStorage.setItem('theme', theme);
+    }
+
+    // Load saved theme
+    const savedTheme = localStorage.getItem('theme') || 'wabi';
+    setTheme(savedTheme);
+
+    themeToggle.addEventListener('click', () => {
+      const currentTheme = body.getAttribute('data-theme');
+      setTheme(currentTheme === 'purple' ? 'wabi' : 'purple');
+    });
 
     // Toggle sidebar on mobile
     function toggleSidebar() {
