@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daily Quests</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Zen+Kaku+Gothic+New:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f5f1eb;
+      --bg-deep: #e8e2d9;
+      --fg: #2c2825;
+      --fg-muted: #6b635b;
+      --accent: #8b6b5c;
+      --accent-deep: #5c4a42;
+      --card: rgba(255, 252, 247, 0.7);
+      --border: rgba(92, 74, 66, 0.15);
+      --ink: #3d3632;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Zen Kaku Gothic New', sans-serif;
+      background-color: var(--bg);
+      color: var(--fg);
+      margin: 0;
+      min-height: 100vh;
+    }
+
+    .font-display {
+      font-family: 'Cormorant Garamond', serif;
+    }
+
+    /* Paper texture overlay */
+    .paper-texture {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.4;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+      mix-blend-mode: multiply;
+      z-index: 9999;
+    }
+
+    /* Ink wash blob */
+    .ink-wash {
+      position: fixed;
+      width: 600px;
+      height: 600px;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.08;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .ink-wash-1 {
+      background: radial-gradient(ellipse at center, var(--accent) 0%, transparent 70%);
+      top: -200px;
+      right: -100px;
+    }
+
+    .ink-wash-2 {
+      background: radial-gradient(ellipse at center, var(--ink) 0%, transparent 70%);
+      bottom: -300px;
+      left: -200px;
+    }
+
+    /* Sidebar styles */
+    .sidebar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      height: 100vh;
+      width: 280px;
+      background: linear-gradient(135deg, var(--card) 0%, rgba(245, 241, 235, 0.95) 100%);
+      backdrop-filter: blur(20px);
+      border-right: 1px solid var(--border);
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .sidebar-header {
+      padding: 2rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1rem 0;
+    }
+
+    .sidebar-nav::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .sidebar-nav::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .sidebar-nav::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 2px;
+    }
+
+    .nav-category {
+      padding: 0.75rem 1.5rem 0.5rem;
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--fg-muted);
+      font-weight: 500;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.875rem 1.5rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+      color: var(--fg-muted);
+      border: none;
+      background: transparent;
+      width: 100%;
+      text-align: left;
+      font-family: inherit;
+      font-size: 0.9rem;
+    }
+
+    .nav-item::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 3px;
+      height: 0;
+      background: var(--accent);
+      border-radius: 0 2px 2px 0;
+      transition: height 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .nav-item:hover {
+      background: rgba(139, 107, 92, 0.05);
+      color: var(--fg);
+    }
+
+    .nav-item.active {
+      color: var(--fg);
+      background: rgba(139, 107, 92, 0.08);
+    }
+
+    .nav-item.active::before {
+      height: 24px;
+    }
+
+    .nav-item-icon {
+      width: 18px;
+      height: 18px;
+      opacity: 0.6;
+      flex-shrink: 0;
+    }
+
+    .nav-item.active .nav-item-icon {
+      opacity: 1;
+    }
+
+    /* Main content */
+    .main-content {
+      margin-left: 280px;
+      min-height: 100vh;
+      position: relative;
+      z-index: 1;
+    }
+
+    .content-header {
+      padding: 1.5rem 2rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--card);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .current-game-title {
+      font-size: 1.25rem;
+      font-weight: 400;
+      letter-spacing: 0.02em;
+    }
+
+    .external-link {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--fg-muted);
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+
+    .external-link:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+    }
+
+    .iframe-container {
+      width: 100%;
+      height: calc(100vh - 70px);
+      position: relative;
+      background: white;
+    }
+
+    .iframe-container iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    .iframe-loading {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg);
+      gap: 1.5rem;
+    }
+
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .iframe-container iframe.loaded + .iframe-loading {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    /* Mobile menu toggle */
+    .menu-toggle {
+      display: none;
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      z-index: 200;
+      width: 44px;
+      height: 44px;
+      background: var(--card);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .menu-toggle svg {
+      width: 20px;
+      height: 20px;
+      color: var(--fg);
+    }
+
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(44, 40, 37, 0.3);
+      z-index: 90;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    /* Empty state */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: calc(100vh - 70px);
+      padding: 2rem;
+      text-align: center;
+    }
+
+    .empty-state-icon {
+      width: 80px;
+      height: 80px;
+      margin-bottom: 2rem;
+      opacity: 0.2;
+    }
+
+    .empty-state h2 {
+      font-size: 1.5rem;
+      font-weight: 300;
+      margin-bottom: 0.5rem;
+      color: var(--fg);
+    }
+
+    .empty-state p {
+      color: var(--fg-muted);
+      font-size: 0.9rem;
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .animate-in {
+      animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .sidebar {
+        transform: translateX(-100%);
+      }
+
+      .sidebar.open {
+        transform: translateX(0);
+      }
+
+      .sidebar-overlay.open {
+        display: block;
+        opacity: 1;
+      }
+
+      .main-content {
+        margin-left: 0;
+      }
+
+      .menu-toggle {
+        display: flex;
+      }
+
+      .content-header {
+        padding-left: 4rem;
+      }
+    }
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      .loading-spinner {
+        animation: none;
+      }
+
+      .sidebar,
+      .nav-item,
+      .nav-item::before {
+        transition: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Paper texture -->
+  <div class="paper-texture"></div>
+  
+  <!-- Ink wash backgrounds -->
+  <div class="ink-wash ink-wash-1"></div>
+  <div class="ink-wash ink-wash-2"></div>
+
+  <!-- Mobile menu toggle -->
+  <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round"/>
+    </svg>
+  </button>
+
+  <!-- Sidebar overlay -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <header class="sidebar-header">
+      <h1 class="font-display text-2xl font-light tracking-wide" style="color: var(--fg);">Daily Quests</h1>
+      <p class="text-xs mt-1" style="color: var(--fg-muted); letter-spacing: 0.1em;">日常のクエスト</p>
+    </header>
+    
+    <nav class="sidebar-nav" role="navigation" aria-label="Game navigation">
+      <div class="nav-category">Hub</div>
+      <button class="nav-item active" data-url="https://www.alldle.net/" data-title="Alldle Hub">
+        <svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="3" y="3" width="7" height="7" rx="1"/>
+          <rect x="14" y="3" width="7" height="7" rx="1"/>
+          <rect x="3" y="14" width="7" height="7" rx="1"/>
+          <rect x="14" y="14" width="7" height="7" rx="1"/>
+        </svg>
+        <span>Alldle Hub</span>
+      </button>
+
+      <div class="nav-category">Anime & Games</div>
+      <button class="nav-item" data-url="https://loldle.net/" data-title="Loldle">
+        <svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="12" cy="8" r="4"/>
+          <path d="M4 20c0-4 4-6 8-6s8 2 8 6"/>
+        </svg>
+        <span>Loldle</span>
+      </button>
+      <button class="nav-item" data-url="https://narutodle.net/" data-title="Narutodle">
+        <svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+        </svg>
+        <span>Narutodle</span>
+      </button>
+      <button class="nav-item" data-url="https://aniguessr.com/" data-title="Aniguessr">
+        <svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="2" y="4" width="20" height="16" rx="2"/>
+          <path d="M10 9l5 3-5 3V9z"/>
+        </svg>
+        <span>Aniguessr</span>
+      </button>
+
+      <div class="nav-category">Word & Logic</div>
+      <button class="nav-item" data-url="https://www.nytimes.com/games/wordle/index.html" data-title="Wordle">
+        <svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="4" y="4" width="5" height="5" rx="1"/>
+          <rect x="10" y="4" width="5" height="5" rx="1"/>
+          <rect x="4" y="10" width="5" height="5" rx="1"/>
+          <rect x="10" y="10" width="5" height="5" rx="1"/>
+          <rect x="16" y="10" width="5" height="5" rx="1"/>
+          <rect x="4" y="16" width="5" height="5" rx="1"/>
+          <rect x="10" y="16" width="5" height="5" rx="1"/>
+        </svg>
+        <span>Wordle</span>
+      </button>
+      <button class="nav-item" data-url="https://www.nytimes.com/games/connections" data-title="Connections">
+        <svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="6" cy="6" r="3"/>
+          <circle cx="18" cy="6" r="3"/>
+          <circle cx="6" cy="18" r="3"/>
+          <circle cx="18" cy="18" r="3"/>
+          <path d="M9 6h6M6 9v6M18 9v6M9 18h6"/>
+        </svg>
+        <span>Connections</span>
+      </button>
+      <button class="nav-item" data-url="https://contexto.me/en/" data-title="Contexto">
+        <svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="12" cy="12" r="9"/>
+          <path d="M12 3v18M3 12h18"/>
+        </svg>
+        <span>Contexto</span>
+      </button>
+      <button class="nav-item" data-url="https://redactle.net/" data-title="Redactle">
+        <svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="4" y="4" width="16" height="16" rx="2"/>
+          <path d="M8 8h8M8 12h8M8 16h4"/>
+        </svg>
+        <span>Redactle</span>
+      </button>
+      <button class="nav-item" data-url="https://lessgames.com/clueless" data-title="Clueless">
+        <svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="12" cy="12" r="9"/>
+          <path d="M9 9l6 6M15 9l-6 6"/>
+        </svg>
+        <span>Clueless</span>
+      </button>
+
+      <div class="nav-category">Geography</div>
+      <button class="nav-item" data-url="https://worldle.teuteuf.fr/" data-title="Worldle">
+        <svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="12" cy="12" r="9"/>
+          <path d="M3 12h18M12 3c-3 3-3 15 0 18M12 3c3 3 3 15 0 18"/>
+        </svg>
+        <span>Worldle</span>
+      </button>
+      <button class="nav-item" data-url="https://travle.earth/" data-title="Travle">
+        <svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M12 2C8 2 4 6 4 10c0 7 8 12 8 12s8-5 8-12c0-4-4-8-8-8z"/>
+          <circle cx="12" cy="10" r="3"/>
+        </svg>
+        <span>Travle</span>
+      </button>
+
+      <div class="nav-category">Puzzle</div>
+      <button class="nav-item" data-url="https://www.theatlantic.com/games/bracket-city/" data-title="Bracket City">
+        <svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M8 3H5a2 2 0 00-2 2v3M8 21H5a2 2 0 01-2-2v-3M16 3h3a2 2 0 012 2v3M16 21h3a2 2 0 002-2v-3"/>
+        </svg>
+        <span>Bracket City</span>
+      </button>
+    </nav>
+  </aside>
+
+  <!-- Main content -->
+  <main class="main-content">
+    <header class="content-header">
+      <h2 class="font-display current-game-title" id="currentTitle">Alldle Hub</h2>
+      <a href="https://www.alldle.net/" target="_blank" rel="noopener noreferrer" class="external-link" id="externalLink">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/>
+        </svg>
+        <span>Open in new tab</span>
+      </a>
+    </header>
+
+    <div class="iframe-container" id="iframeContainer">
+      <div class="empty-state" id="emptyState">
+        <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+          <circle cx="12" cy="12" r="9"/>
+          <path d="M12 8v4l2 2"/>
+        </svg>
+        <h2 class="font-display">Select a Quest</h2>
+        <p>Choose a game from the sidebar to begin</p>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Game data
+    const games = [
+      { id: 'alldle', title: 'Alldle Hub', url: 'https://www.alldle.net/' },
+      { id: 'loldle', title: 'Loldle', url: 'https://loldle.net/' },
+      { id: 'narutodle', title: 'Narutodle', url: 'https://narutodle.net/' },
+      { id: 'bracket', title: 'Bracket City', url: 'https://www.theatlantic.com/games/bracket-city/' },
+      { id: 'redactle', title: 'Redactle', url: 'https://redactle.net/' },
+      { id: 'contexto', title: 'Contexto', url: 'https://contexto.me/en/' },
+      { id: 'clueless', title: 'Clueless', url: 'https://lessgames.com/clueless' },
+      { id: 'connections', title: 'Connections', url: 'https://www.nytimes.com/games/connections' },
+      { id: 'worldle', title: 'Worldle', url: 'https://worldle.teuteuf.fr/' },
+      { id: 'travle', title: 'Travle', url: 'https://travle.earth/' },
+      { id: 'wordle', title: 'Wordle', url: 'https://www.nytimes.com/games/wordle/index.html' },
+      { id: 'aniguessr', title: 'Aniguessr', url: 'https://aniguessr.com/' }
+    ];
+
+    // DOM elements
+    const sidebar = document.getElementById('sidebar');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+    const menuToggle = document.getElementById('menuToggle');
+    const navItems = document.querySelectorAll('.nav-item');
+    const currentTitle = document.getElementById('currentTitle');
+    const externalLink = document.getElementById('externalLink');
+    const iframeContainer = document.getElementById('iframeContainer');
+    const emptyState = document.getElementById('emptyState');
+
+    let currentIframe = null;
+
+    // Toggle sidebar on mobile
+    function toggleSidebar() {
+      sidebar.classList.toggle('open');
+      sidebarOverlay.classList.toggle('open');
+    }
+
+    menuToggle.addEventListener('click', toggleSidebar);
+    sidebarOverlay.addEventListener('click', toggleSidebar);
+
+    // Load game into iframe
+    function loadGame(url, title) {
+      // Update title
+      currentTitle.textContent = title;
+      document.title = `${title} | Daily Quests`;
+
+      // Update external link
+      externalLink.href = url;
+
+      // Remove empty state
+      if (emptyState) {
+        emptyState.style.display = 'none';
+      }
+
+      // Remove existing iframe
+      if (currentIframe) {
+        currentIframe.remove();
+      }
+
+      // Create loading indicator
+      const loading = document.createElement('div');
+      loading.className = 'iframe-loading';
+      loading.innerHTML = `
+        <div class="loading-spinner"></div>
+        <span style="color: var(--fg-muted); font-size: 0.85rem;">Loading ${title}...</span>
+      `;
+
+      // Create new iframe
+      const iframe = document.createElement('iframe');
+      iframe.src = url;
+      iframe.title = title;
+      iframe.setAttribute('loading', 'lazy');
+      iframe.setAttribute('allow', 'fullscreen');
+      iframe.style.opacity = '0';
+      iframe.style.transition = 'opacity 0.3s ease';
+
+      iframe.onload = function() {
+        iframe.style.opacity = '1';
+        iframe.classList.add('loaded');
+        loading.style.opacity = '0';
+        setTimeout(() => loading.remove(), 300);
+      };
+
+      iframe.onerror = function() {
+        loading.innerHTML = `
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--fg-muted)" stroke-width="1.5">
+            <circle cx="12" cy="12" r="9"/>
+            <path d="M12 8v4M12 16h.01"/>
+          </svg>
+          <span style="color: var(--fg-muted);">Failed to load. Try opening in new tab.</span>
+        `;
+      };
+
+      iframeContainer.appendChild(loading);
+      iframeContainer.appendChild(iframe);
+      currentIframe = iframe;
+
+      // Close sidebar on mobile
+      if (window.innerWidth <= 768) {
+        sidebar.classList.remove('open');
+        sidebarOverlay.classList.remove('open');
+      }
+    }
+
+    // Add click handlers to nav items
+    navItems.forEach(item => {
+      item.addEventListener('click', () => {
+        // Update active state
+        navItems.forEach(nav => nav.classList.remove('active'));
+        item.classList.add('active');
+
+        // Load the game
+        const url = item.dataset.url;
+        const title = item.dataset.title;
+        loadGame(url, title);
+      });
+
+      // Keyboard navigation
+      item.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          item.click();
+        }
+      });
+    });
+
+    // Load first game on page load
+    const firstItem = document.querySelector('.nav-item.active');
+    if (firstItem) {
+      loadGame(firstItem.dataset.url, firstItem.dataset.title);
+    }
+
+    // Handle escape key to close sidebar
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && sidebar.classList.contains('open')) {
+        toggleSidebar();
+      }
+    });
+
+    // Animate elements on load
+    const animateElements = document.querySelectorAll('.sidebar-header, .nav-category, .nav-item');
+    animateElements.forEach((el, i) => {
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(10px)';
+      setTimeout(() => {
+        el.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+        el.style.opacity = '1';
+        el.style.transform = 'translateY(0)';
+      }, 50 + i * 30);
+    });
+  </script>
+</body>
+</html>
