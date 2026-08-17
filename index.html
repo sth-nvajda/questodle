@@ -1,197 +1,366 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daily Quests</title>
-    <script src="https://cdn.jsdelivr.net/npm/react@18.0.0/umd/react.development.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/react-dom@18.0.0/umd/react-dom.development.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Playfair Display', 'Cormorant Garamond', serif;
-        }
-        .light-bg {
-            background: linear-gradient(135deg, #f8f5f0 0%, #e8dfd5 100%);
-        }
-        .dark-bg {
-            background: linear-gradient(135deg, #2d1b3d 0%, #1a0f1a 100%);
-        }
-        .light-card {
-            background: rgba(255, 248, 240, 0.9);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 248, 240, 0.5);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        }
-        .dark-card {
-            background: rgba(45, 27, 61, 0.85);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(138, 43, 226, 0.3);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        }
-        .light-text {
-            color: #2d1b3d;
-        }
-        .dark-text {
-            color: #e8dfd5;
-        }
-        .light-accent {
-            color: #8b5cf6;
-        }
-        .dark-accent {
-            color: #a78bfa;
-        }
-        .gradient-text {
-            background: linear-gradient(135deg, #8b5cf6 0%, #c084fc 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        .header-decoration {
-            position: relative;
-        }
-        .header-decoration::before {
-            content: '';
-            position: absolute;
-            bottom: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100px;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, #8b5cf6, transparent);
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daily Quests</title>
+<script src="https://cdn.jsdelivr.net/npm/react@18.0.0/umd/react.development.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/react-dom@18.0.0/umd/react-dom.development.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600;800&family=Courier+Prime:wght@400;700&family=VT323&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { font-family: 'Courier Prime', 'Courier New', monospace; }
+
+  .theme-day {
+    --bg: #eae2c8;
+    --bg-dot: #dccfa2;
+    --ink: #362e22;
+    --ink-soft: #6b6152;
+    --stone-dark: #6b6455;
+    --moss: #6b7f5b;
+    --moss-dark: #4f5f44;
+    --clay: #b5502e;
+    --card-bg: #f4eeda;
+    --card-border: #c9bb92;
+    --shadow: rgba(54,46,34,0.18);
+    --hill-far: #cdd6b3;
+    --hill-mid: #a3b78a;
+    --hill-near: #74895f;
+    --bush: #566b47;
+    --bamboo: #8a9d5e;
+    --bamboo-dark: #6f8049;
+    --sun: #f2b74e;
+    --sun-glow: rgba(242,183,78,0.35);
+  }
+  .theme-night {
+    --bg: #182019;
+    --bg-dot: #101611;
+    --ink: #e4dab8;
+    --ink-soft: #a99f85;
+    --stone-dark: #313d34;
+    --moss: #8fa37e;
+    --moss-dark: #6e8560;
+    --clay: #d9835a;
+    --card-bg: #202b23;
+    --card-border: #3b4a3e;
+    --shadow: rgba(0,0,0,0.55);
+    --hill-far: #263229;
+    --hill-mid: #1c2a20;
+    --hill-near: #121e16;
+    --bush: #0f1a13;
+    --bamboo: #3c4c33;
+    --bamboo-dark: #293522;
+    --moon: #efe7c9;
+    --moon-glow: rgba(239,231,201,0.18);
+  }
+
+  .page {
+    min-height: 100vh;
+    background-color: var(--bg);
+    background-image: radial-gradient(circle at 1px 1px, var(--bg-dot) 1.4px, transparent 0);
+    background-size: 24px 24px;
+    color: var(--ink);
+    transition: background-color 0.5s ease, color 0.5s ease;
+    padding-bottom: 3rem;
+  }
+
+  a { color: inherit; }
+  button { font-family: inherit; cursor: pointer; }
+  a:focus-visible, button:focus-visible {
+    outline: 2px dashed var(--clay);
+    outline-offset: 3px;
+  }
+
+  .frame { max-width: 780px; margin: 0 auto; padding: 1.5rem 1rem 0; position: relative; z-index: 1; }
+
+  .backdrop {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 0;
+    pointer-events: none;
+  }
+  .backdrop svg { width: 100%; height: 100%; display: block; }
+  .hill-far { fill: var(--hill-far); transition: fill 0.5s ease; }
+  .hill-mid { fill: var(--hill-mid); transition: fill 0.5s ease; }
+  .hill-near { fill: var(--hill-near); transition: fill 0.5s ease; }
+  .bush-shape { fill: var(--bush); transition: fill 0.5s ease; }
+  .bamboo-stalk { fill: var(--bamboo); transition: fill 0.5s ease; }
+  .bamboo-node { stroke: var(--bamboo-dark); transition: stroke 0.5s ease; }
+  .bamboo-leaf { fill: var(--bamboo-dark); transition: fill 0.5s ease; }
+  .moon-cut { fill: var(--bg); transition: fill 0.5s ease; }
+  .inner-border {
+    border: 3px double var(--stone-dark);
+    padding: 1.75rem 1.5rem 2.5rem;
+    background: var(--card-bg);
+    box-shadow: 0 6px 18px var(--shadow);
+  }
+
+  /* ---- hero ---- */
+  .hero { text-align: center; }
+  .bonsai-img {
+    width: 140px;
+    height: 140px;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    margin: 0 auto 0.5rem;
+    display: block;
+  }
+  h1.title {
+    font-family: 'Shippori Mincho', serif;
+    font-weight: 800;
+    font-size: 2.2rem;
+    margin: 0.4rem 0 0.15rem;
+    letter-spacing: 0.02em;
+  }
+  .tagline {
+    color: var(--ink-soft);
+    font-size: 0.9rem;
+    margin: 0 0 1.2rem;
+  }
+  .subtitle-jp {
+    font-family: 'Shippori Mincho', serif;
+    color: var(--moss);
+    font-size: 1rem;
+    margin: 0 0 0.2rem;
+  }
+
+  .toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--bg);
+    color: var(--ink);
+    border: 2px solid var(--stone-dark);
+    border-radius: 999px;
+    padding: 0.5rem 1.2rem;
+    font-size: 0.9rem;
+    transition: transform 0.25s ease;
+  }
+  .toggle-btn:hover { transform: scale(1.04); background: var(--card-border); }
+
+  /* ---- categories ---- */
+  .category { margin-top: 2.25rem; }
+  .category-head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px dashed var(--card-border);
+    padding-bottom: 0.5rem;
+  }
+  .category-emoji { font-size: 1.6rem; }
+  .category-title {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 1.35rem;
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .game-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 0.9rem;
+  }
+  .game-tile {
+    position: relative;
+    display: block;
+    text-decoration: none;
+    background: var(--bg);
+    border: 1px dashed var(--card-border);
+    padding: 0.9rem 1rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+  .game-tile:nth-child(3n) { transform: rotate(-0.6deg); }
+  .game-tile:nth-child(3n+1) { transform: rotate(0.5deg); }
+  .game-tile:nth-child(3n+2) { transform: rotate(-0.2deg); }
+  .game-tile:hover {
+    transform: rotate(0deg) translateY(-3px);
+    box-shadow: 0 6px 14px var(--shadow);
+    border-color: var(--moss);
+    border-style: solid;
+  }
+  .game-tile-inner { display: flex; align-items: center; gap: 0.7rem; }
+  .game-emoji { font-size: 1.7rem; }
+  .game-name { font-weight: 700; font-size: 1.02rem; margin: 0; }
+
+  .badge-new {
+    position: absolute;
+    top: -9px;
+    right: -8px;
+    background: var(--clay);
+    color: #fff8ec;
+    font-family: 'VT323', monospace;
+    font-size: 0.95rem;
+    padding: 0.05rem 0.5rem;
+    border: 1px solid var(--ink);
+    transform: rotate(6deg);
+  }
+  .blink { animation: blink-op 1.4s steps(1) infinite; }
+  @keyframes blink-op { 50% { opacity: 0.25; } }
+  @media (prefers-reduced-motion: reduce) {
+    .blink { animation: none !important; opacity: 1 !important; }
+  }
+
+  @media (max-width: 480px) {
+    h1.title { font-size: 1.75rem; }
+    .inner-border { padding: 1.25rem 1rem 1.5rem; }
+  }
+</style>
 </head>
 <body>
-    <div id="root"></div>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect } = React;
 
-    <script type="text/babel">
-        const { useState, useEffect } = React;
+const BONSAI_SRC = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAcAAAAHACAYAAAA1JbhzAAAK5UlEQVR4nO3dsY5c1R3A4V3kPhQUkWXJFghS0kQUyE0MbqhSuIhoiVLwAEHJAyTKC1CmRCn8BjFO5yJKQxkQCEuWRUFBiqSM0yVB8hx5D3Pv3Lm/72tHO3t2Z3Z/OtL5z7m4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIBTuTz1AoD1vHvv7WeHHrv73u01lzL0+d+/OvjY4y+fTj3ng/uP/L/je1469QIA4BQEEIAkAQQgSQABSBJAAJIEEIAkx4LhDH3w0b2D4wxv/OTVNZeyKaPxiZHRaIXxif2yAwQgSQABSBJAAJIEEIAkAQQgSQABSHK8F05odDvDzdeuH/y68qjDrCVGJEaMT2yfHSAASQIIQJIAApAkgAAkCSAASQIIQJJjurCwLY063LzxytGf8/GTb4/+nGszItFkBwhAkgACkCSAACQJIABJAghAkgACkOQoLhzB3kcdZhmRuDojEuuxAwQgSQABSBJAAJIEEIAkAQQgSQABSHLcFl7QlkYdRoxBrMeIxHmzAwQgSQABSBJAAJIEEIAkAQQgSQABSLp26gWwnD/88dcHj+2vbXRcfHQkfO1j37OjDnAVo/fS6O9h9P40InF1doAAJAkgAEkCCECSAAKQJIAAJAkgAEnGIDZidLz57nu311zKIkY3Ioweu/na9YO/F5+o/3yjGxiWuCli7zc+sF92gAAkCSAASQIIQJIAApAkgAAkCSAASbs+Dr41H3x07+CR/uEogKPrzzW6YWJkdnxi9jaI0WvLeZt9D47Mvj9H9j76M8sOEIAkAQQgSQABSBJAAJIEEIAkAQQgyW0QE0Y3N8welV9i1GH2++1hRGJk9BotcQQd2CY7QACSBBCAJAEEIEkAAUgSQACSBBCAJGMQB4xGHWa5FeC4Rr/PJT6lH9gXO0AAkgQQgCQBBCBJAAFIEkAAkgQQgCRjEBNmb3xg+5Z4bUcjGUZjts9IzX7ZAQKQJIAAJAkgAEkCCECSAAKQJIAAJKXHIJa48WHW4yffHnzs5o1XVv1+PN/jL58efGx2fMKIxDasPeowei+xHjtAAJIEEIAkAQQgSQABSBJAAJIEEICk9BjEuTCysH1GJM7b6Pc5OyKx9qjDg/uPLlf9hjtgBwhAkgACkCSAACQJIABJAghAkgACkGQMYkWOtR/X2p/gP8uIxNVt6QaU2RGJ0WvrNohtsAMEIEkAAUgSQACSBBCAJAEEIEkAAUgyBjFhiWPtbMPax9PXHpEYWXt8YolRh9nvZ0SiyQ4QgCQBBCBJAAFIEkAAkgQQgCQBBCDp8tQLOKV377397NjPucQYxB4+3X/W2jc+nMsR9D2M29x9561TL+G/ZscgZs2+r2ffnw/uP0r/rz/EDhCAJAEEIEkAAUgSQACSBBCAJAEEIMnR2APOZURiZEvjE2uPM4ycy6jD2tZ+fxqDOC4jEldnBwhAkgACkCSAACQJIABJAghAkgACkHTt1AsoGR1Tvvve7aN/vy2NHizhXMYZRsfMlxi3mTX7+5wdnxiNHty88crUc85+v7LRe3DvIxJ2gAAkCSAASQIIQJIAApAkgAAkCSAAScYgDpg9uv7LX/386GuZPb49ug1iSyMS5zLOMDJ7XHz267Y0PrEEIwuswQ4QgCQBBCBJAAFIEkAAkgQQgCQBBCDJGMQBa486jIw+GX9LIxLlcYaRO2/eOvrIwr+/mPtdv/T63M0NSxi9z0bvz3OxpVEjns8OEIAkAQQgSQABSBJAAJIEEIAkAQQgKT0GMRp1uPnado6Ln4vR72xLIxKjEYIlRha2ZPSzz45IjF7b2b+jcxmRWHvUYUt/R3tgBwhAkgACkCSAACQJIABJAghAkgACkLT7MYjRqAPnbXSk/9XrLx98zGf0r2cPIxJGHfbLDhCAJAEEIEkAAUgSQACSBBCAJAEEIOny1AtY2uwYxOwR7bvvvDX1dSOPn3x79OccWeLY9xJHu2/9819Hf86vnn539Ofcg9mbImbt/TaWLY06PLj/aPcdOMQOEIAkAQQgSQABSBJAAJIEEIAkAQQgafe3Qaztz5/+9eBjS3xS/ay1P+F+CaORhdFtEFzd6OaNJUYklrhFYm1GHbbPDhCAJAEEIEkAAUgSQACSBBCAJAEEIGn3R2Nnb4MYWeIY9hIjEmuPOqx97Ht0NH9kdkTCTRFXt/YtEmVGHa7ODhCAJAEEIEkAAUgSQACSBBCAJAEEIGn3x2aXGIMYOZdPqp+1pU+4X3sMYqQ8IvHws6+n/o+s/be5B0YdjssOEIAkAQQgSQABSBJAAJIEEIAkAQQgKX2kdkvHsNcen9jSOMPI6Nj3nTdvHf31MyLxfLOjDkvY0t/tLOMM22AHCECSAAKQJIAAJAkgAEkCCECSAAKQ5CjuAXs4an0uljgSvqURiXMZg9jSqAOswQ4QgCQBBCBJAAFIEkAAkgQQgCQBBCDJsecJRiSubkuffl8ekTDqAP9jBwhAkgACkCSAACQJIABJAghAkgACkHTt1As4R7NH+vcwPrGlcYY9GI1PnMstEnCu7AABSBJAAJIEEIAkAQQgSQABSBJAAJIcaYf/s4ebItz4AC/GDhCAJAEEIEkAAUgSQACSBBCAJAEEIEkAAUgSQACSBBCAJAEEIEkAAUgSQACSBBCAJAEEIEkAAUgSQACSBBCAJAEEIEkAAUgSQACSrp16AbC2O2/eenbqNSxp9PM9/OzryzXXAltmBwhAkgACkCSAACQJIABJAghAkgACkGQMgpzZUYAtjU8YZ4Afzg4QgCQBBCBJAAFIEkAAkgQQgCQBBCDJGAQs7Kun3x187NXrL089dnHhxgf4oewAAUgSQACSBBCAJAEEIEkAAUgSQACSBBCAJAEEIEkAAUgSQACSBBCAJAEEIEkAAUgSQACSBBCAJAEEIEkAAUgSQACSBBCAJAEEIOnaqRfA9nzzp98+O/Uatuj9339y6iW8EK/f1f34F7+7PPUaWJ8dIABJAghAkgACkCSAACQJIABJAghAkgACkCSAACQJIABJAghAkgACkCSAACQJIABJboOAF/TJb94/9RKAI7IDBCBJAAFIEkAAkgQQgCQBBCBJAAFIEkAAkgQQgCQBBCBJAAFIEkAAkgQQgCQBBCDJbRCs4h9ffH3qJZzMj16/deolAM9hBwhAkgACkCSAACQJIABJAghAkgACkHR56gVwXj6+88azma9752c/PfZSzsanf/nbqZfAxcXFhw8/9/+O77EDBCBJAAFIEkAAkgQQgCQBBCBJAAFIchsEHIFRBzg/doAAJAkgAEkCCECSAAKQJIAAJAkgAEnGIDia8o0PwPmxAwQgSQABSBJAAJIEEIAkAQQgSQABSLo89QLYno/vvPFs5uv2Pgbhxof9+vDh5/4XBtkBApAkgAAkCSAASQIIQJIAApAkgAAkCSAASQIIQJIAApAkgAAkCSAASQIIQJIAApDkE9CjZm98gBo3ReyXHSAASQIIQJIAApAkgAAkCSAASQIIQJIAApAkgAAkCSAASQIIQJIAApAkgAAkCSAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0PAflOEqm21MRSYAAAAASUVORK5CYII=";
 
-        const GameHub = () => {
-            const [isDarkMode, setIsDarkMode] = useState(false);
-            const [mounted, setMounted] = useState(false);
+const BackdropGarden = ({ theme }) => (
+  <svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+    {theme === 'day' ? (
+      <g>
+        <circle cx="1180" cy="150" r="72" fill="var(--sun-glow)" />
+        <circle cx="1180" cy="150" r="42" fill="var(--sun)" />
+      </g>
+    ) : (
+      <g>
+        <circle cx="1180" cy="150" r="80" fill="var(--moon-glow)" />
+        <circle cx="1180" cy="150" r="40" fill="var(--moon)" />
+        <circle cx="1197" cy="137" r="34" className="moon-cut" />
+        <circle cx="1075" cy="110" r="2.4" fill="var(--moon)" opacity="0.8" />
+        <circle cx="1235" cy="205" r="2" fill="var(--moon)" opacity="0.6" />
+        <circle cx="1120" cy="235" r="1.6" fill="var(--moon)" opacity="0.7" />
+        <circle cx="1265" cy="120" r="1.8" fill="var(--moon)" opacity="0.7" />
+      </g>
+    )}
+    <path className="hill-far" d="M0,560 C120,520 240,600 360,560 C480,520 600,592 720,556 C840,520 960,600 1080,560 C1200,520 1320,592 1440,556 L1440,900 L0,900 Z" />
+    <path className="hill-mid" d="M0,660 C150,608 300,690 450,650 C600,610 750,692 900,650 C1050,610 1200,690 1350,652 L1440,660 L1440,900 L0,900 Z" />
+    <g>
+      <ellipse className="bush-shape" cx="300" cy="762" rx="46" ry="30" />
+      <ellipse className="bush-shape" cx="340" cy="770" rx="34" ry="24" />
+      <ellipse className="bush-shape" cx="1080" cy="768" rx="42" ry="28" />
+      <ellipse className="bush-shape" cx="1120" cy="776" rx="30" ry="20" />
+      <ellipse className="bush-shape" cx="1290" cy="758" rx="38" ry="26" />
+    </g>
+    <path className="hill-near" d="M0,780 C180,742 360,812 540,772 C720,732 900,812 1080,772 C1260,732 1440,802 1440,782 L1440,900 L0,900 Z" />
+    <g>
+      {[
+        {x:120, top:470}, {x:150, top:520}, {x:180, top:450}, {x:210, top:540}
+      ].map((b, i) => (
+        <g key={i}>
+          <rect className="bamboo-stalk" x={b.x} y={b.top} width="10" height={900 - b.top} rx="4" />
+          {[b.top+40, b.top+90, b.top+140, b.top+190].map((ny, j) => (
+            ny < 890 ? <line key={j} className="bamboo-node" x1={b.x-1} y1={ny} x2={b.x+11} y2={ny} strokeWidth="2" /> : null
+          ))}
+          <ellipse className="bamboo-leaf" cx={b.x - 12} cy={b.top + 14} rx="16" ry="6" transform={`rotate(-24 ${b.x-12} ${b.top+14})`} />
+          <ellipse className="bamboo-leaf" cx={b.x + 18} cy={b.top + 26} rx="16" ry="6" transform={`rotate(20 ${b.x+18} ${b.top+26})`} />
+        </g>
+      ))}
+    </g>
+  </svg>
+);
 
-            useEffect(() => {
-                setMounted(true);
-            }, []);
+const GameHub = () => {
+  const [theme, setTheme] = useState('day');
+  const [mounted, setMounted] = useState(false);
 
-            if (!mounted) return null;
+  useEffect(() => { setMounted(true); }, []);
+  if (!mounted) return null;
 
-            const games = [
-                {
-                    category: "Word & Text Games",
-                    emoji: "📝",
-                    games: [
-                        { name: "Wordle", url: "https://www.nytimes.com/games/wordle/index.html", emoji: "🎯" },
-                        { name: "Connections", url: "https://www.nytimes.com/games/connections", emoji: "🔤" },
-                        { name: "Contexto", url: "https://contexto.me/en/", emoji: "🔍" },
-                        { name: "Redactle", url: "https://redactle.net/", emoji: "📄" },
-                        { name: "Clueless", url: "https://lessgames.com/clueless", emoji: "🧩" },
-                        { name: "LOLdle", url: "https://loldle.net/", emoji: "🎮" },
-                        { name: "Narutodle", url: "https://narutodle.net/", emoji: "🍥" },
-                        { name: "McDle", url: "https://www.mcdle.net/", emoji: "🍔" }
-                    ]
-                },
-                {
-                    category: "Geography & Travel",
-                    emoji: "🗺️",
-                    games: [
-                        { name: "Worldle", url: "https://worldle.teuteuf.fr/", emoji: "🌍" },
-                        { name: "Travle", url: "https://travle.earth/", emoji: "✈️" }
-                    ]
-                },
-                {
-                    category: "Media & Entertainment",
-                    emoji: "🎬",
-                    games: [
-                        { name: "AnimeGuessr", url: "https://aniguessr.com/", emoji: "🎌" },
-                        { name: "Guess the Movie", url: "https://guessthemovie.name/", emoji: "🎬" },
-                        { name: "FoodGuessr", url: "https://foodguessr.com/", emoji: "🍜" },
-                        { name: "Bracket City", url: "https://www.theatlantic.com/games/bracket-city/", emoji: "🏆" }
-                    ]
-                }
-            ];
+  const games = [
+    {
+      category: "Word & Text Games",
+      emoji: "\ud83d\udcdd",
+      games: [
+        { name: "Wordle", url: "https://www.nytimes.com/games/wordle/index.html", emoji: "\ud83c\udfaf" },
+        { name: "Connections", url: "https://www.nytimes.com/games/connections", emoji: "\ud83d\udd24" },
+        { name: "Contexto", url: "https://contexto.me/en/", emoji: "\ud83d\udd0d" },
+        { name: "Redactle", url: "https://redactle.net/", emoji: "\ud83d\udcc4" },
+        { name: "Clueless", url: "https://lessgames.com/clueless", emoji: "\ud83e\udde9" },
+        { name: "LOLdle", url: "https://loldle.net/", emoji: "\ud83c\udfae" },
+        { name: "Narutodle", url: "https://narutodle.net/", emoji: "\ud83c\udf65" },
+        { name: "McDle", url: "https://www.mcdle.net/", emoji: "\ud83c\udf54" },
+        { name: "Krillion", url: "https://krillion.io/", emoji: "\ud83e\udd90", isNew: true }
+      ]
+    },
+    {
+      category: "Geography & Travel",
+      emoji: "\ud83d\uddfa\ufe0f",
+      games: [
+        { name: "Worldle", url: "https://worldle.teuteuf.fr/", emoji: "\ud83c\udf0d" },
+        { name: "Travle", url: "https://travle.earth/", emoji: "\u2708\ufe0f" }
+      ]
+    },
+    {
+      category: "Media & Entertainment",
+      emoji: "\ud83c\udfac",
+      games: [
+        { name: "AnimeGuessr", url: "https://aniguessr.com/", emoji: "\ud83c\udf8c" },
+        { name: "Guess the Movie", url: "https://guessthemovie.name/", emoji: "\ud83c\udfac" },
+        { name: "FoodGuessr", url: "https://foodguessr.com/", emoji: "\ud83c\udf5c" },
+        { name: "Bracket City", url: "https://www.theatlantic.com/games/bracket-city/", emoji: "\ud83c\udfc6" }
+      ]
+    }
+  ];
 
-            const toggleTheme = () => {
-                setIsDarkMode(!isDarkMode);
-            };
+  return (
+    <div className={`page theme-${theme}`}>
+      <div className="backdrop"><BackdropGarden theme={theme} /></div>
+      <div className="frame">
+        <div className="inner-border">
+          <div className="hero">
+            <img className="bonsai-img" src={BONSAI_SRC} alt="A small pixel-art bonsai tree in a terracotta pot" />
+            <h1 className="title">Daily Quests</h1>
+            <p className="subtitle-jp">日常のクエスト</p>
+            <p className="tagline">a small garden of daily games</p>
 
-            const themeClasses = isDarkMode ? 'dark-bg dark-text' : 'light-bg light-text';
-            const cardClasses = isDarkMode ? 'dark-card' : 'light-card';
-            const accentClasses = isDarkMode ? 'dark-accent' : 'light-accent';
+            <button
+              className="toggle-btn"
+              onClick={() => setTheme(theme === 'day' ? 'night' : 'day')}
+            >
+              <span>{theme === 'day' ? '\ud83c\udf19' : '\u2600\ufe0f'}</span>
+              {theme === 'day' ? 'Moonlit Garden' : 'Day Garden'}
+            </button>
+          </div>
 
-            return (
-                <div className={`min-h-screen ${themeClasses} transition-all duration-700`}>
-                    <div className="container mx-auto px-4 py-8">
-                        {/* Header */}
-                        <header className="text-center mb-12">
-                            <div className="header-decoration">
-                                <h1 className="text-5xl font-light tracking-wider mb-2">
-                                    <span className={`${accentClasses} mr-3`}>🎌</span>
-                                    <span className="gradient-text">Daily Quests</span>
-                                    <span className={`${accentClasses} ml-3`}>🎌</span>
-                                </h1>
-                            </div>
-                            <p className="text-xl opacity-80 mb-8 italic">日常のクエスト</p>
-                            
-                            {/* Theme Toggle */}
-                            <button 
-                                onClick={toggleTheme}
-                                className={`px-8 py-3 rounded-full ${cardClasses} transition-all duration-500 hover:shadow-xl transform hover:scale-105 border-2 ${isDarkMode ? 'border-purple-400' : 'border-amber-200'}`}
-                            >
-                                <span className="flex items-center">
-                                    <span className="mr-2">{isDarkMode ? '☀️' : '🌙'}</span>
-                                    {isDarkMode ? 'Light Mode' : 'Dark Mode'}
-                                </span>
-                            </button>
-                        </header>
-
-                        {/* Game Categories */}
-                        <div className="space-y-10">
-                            {games.map((category, index) => (
-                                <div key={index} className={`${cardClasses} rounded-3xl p-8 shadow-xl border border-opacity-30`}>
-                                    <div className="flex items-center mb-6">
-                                        <span className="text-4xl mr-4">{category.emoji}</span>
-                                        <h2 className="text-3xl font-medium">{category.category}</h2>
-                                    </div>
-                                    
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                        {category.games.map((game, gameIndex) => (
-                                            <a 
-                                                key={gameIndex}
-                                                href={game.url}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className={`${cardClasses} rounded-2xl p-6 hover:shadow-2xl transition-all duration-500 transform hover:scale-105 border border-opacity-20`}
-                                            >
-                                                <div className="flex items-center">
-                                                    <span className="text-4xl mr-4">{game.emoji}</span>
-                                                    <div>
-                                                        <h3 className="font-medium text-xl">{game.name}</h3>
-                                                        <p className="text-sm opacity-70 italic">Click to play</p>
-                                                    </div>
-                                                </div>
-                                            </a>
-                                        ))}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-
-                        {/* Footer */}
-                        <footer className="text-center mt-12 pt-8 border-t border-opacity-20">
-                            <p className="opacity-60 text-lg italic">Find your zen through play</p>
-                        </footer>
+          {games.map((category, index) => (
+            <div className="category" key={index}>
+              <div className="category-head">
+                <span className="category-emoji">{category.emoji}</span>
+                <h2 className="category-title">{category.category}</h2>
+              </div>
+              <div className="game-grid">
+                {category.games.map((game, gameIndex) => (
+                  <a
+                    key={gameIndex}
+                    href={game.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="game-tile"
+                  >
+                    {game.isNew && <span className="badge-new blink">new</span>}
+                    <div className="game-tile-inner">
+                      <span className="game-emoji">{game.emoji}</span>
+                      <div>
+                        <p className="game-name">{game.name}</p>
+                      </div>
                     </div>
-                </div>
-            );
-        };
+                  </a>
+                ))}
+              </div>
+            </div>
+          ))}
 
-        ReactDOM.render(<GameHub />, document.getElementById('root'));
-    </script>
+          </div>
+      </div>
+    </div>
+  );
+};
+
+ReactDOM.render(<GameHub />, document.getElementById('root'));
+</script>
 </body>
 </html>
